@@ -1,0 +1,19 @@
+{
+  "name": "surf-class-notifier",
+  "version": "1.0.0",
+  "description": "Bot to notify about surf classes",
+  "main": "surfClassNotifier.js",
+  "scripts": {
+    "start": "node surfClassNotifier.js"
+  },
+  "dependencies": {
+    "sqlite3": "^5.0.0",
+    "puppeteer": "^20.6.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "dotenv": "^16.0.3",
+    "moment": "^2.30.1",
+    "node-localstorage": "^2.1.0",
+    "dropbox": "^10.1.0",
+    "isomorphic-fetch": "^3.0.0"
+  }
+}

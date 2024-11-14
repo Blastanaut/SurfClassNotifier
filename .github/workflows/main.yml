@@ -1,4 +1,4 @@
-name: Surf Class Bot
+name: Surf Class Notifier
 
 on:
   schedule:
@@ -17,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Use a stable LTS version of Node.js
+          node-version: '22'  # Use a stable LTS version of Node.js
 
       # Step 3: Cache node_modules to speed up installs
       - name: Cache node modules
@@ -54,4 +54,4 @@ jobs:
           SURF_REGISTERING_WEBSITE_LINK: ${{ secrets.SURF_REGISTERING_WEBSITE_LINK }}
           SURF_FORECAST_LINK: ${{ secrets.SURF_FORECAST_LINK }}
           LOCATION_NAME: ${{ secrets.LOCATION_NAME }}
-        run: node surfClassNotifier.js
+        run: npm start

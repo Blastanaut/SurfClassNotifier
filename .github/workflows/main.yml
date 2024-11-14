@@ -36,7 +36,7 @@ jobs:
 
       # Step 5: Install Node.js dependencies
       - name: Install Node.js dependencies
-        run: npm ci
+        run: npm install
 
       # Step 6: Run the bot
       - name: Running the bot

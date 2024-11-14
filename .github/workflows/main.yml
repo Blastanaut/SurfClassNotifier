@@ -1,0 +1,57 @@
+name: Surf Class Bot
+
+on:
+  schedule:
+    - cron: '0 7-22 * * *'  # Run every hour from 7 AM to 10 PM UTC
+  workflow_dispatch:  # Manually trigger the workflow
+
+jobs:
+  surf_class_check:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'  # Use a stable LTS version of Node.js
+
+      # Step 3: Cache node_modules to speed up installs
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      # Step 4: Install Chromium dependencies
+      - name: Install Chromium dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgbm-dev libnss3 libxshmfence1 ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
+
+      # Step 5: Install Node.js dependencies
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      # Step 6: Run the bot
+      - name: Running the bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          WEB_EMAIL: ${{ secrets.WEB_EMAIL }}
+          WEB_PASSWORD: ${{ secrets.WEB_PASSWORD }}
+          PUBLIC_CHANNEL_TOKEN: ${{ secrets.PUBLIC_CHANNEL_TOKEN }}
+          DROPBOX_CLIENT_ID: ${{ secrets.DROPBOX_CLIENT_ID }}
+          DROPBOX_CLIENT_SECRET: ${{ secrets.DROPBOX_CLIENT_SECRET }}
+          DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+          WEATHERAPI_API_KEY: ${{ secrets.WEATHERAPI_API_KEY }}
+          SURF_REGISTERING_WEBSITE_LINK: ${{ secrets.SURF_REGISTERING_WEBSITE_LINK }}
+          SURF_FORECAST_LINK: ${{ secrets.SURF_FORECAST_LINK }}
+          LOCATION_NAME: ${{ secrets.LOCATION_NAME }}
+        run: node surfClassNotifier.js

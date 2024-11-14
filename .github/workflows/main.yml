@@ -17,29 +17,25 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22'  # Use the latest LTS version of Node.js
 
-      # Step 3: Cache node_modules and Puppeteer Chromium binaries
-      - name: Cache node_modules and Puppeteer cache
+      # Step 3: Cache node_modules to speed up installs
+      - name: Cache node modules
         uses: actions/cache@v4
         with:
-          path: |
-            node_modules
-            ~/.cache/puppeteer  # Cache Puppeteer's Chromium binaries
+          path: node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      # Step 4: Install Node.js dependencies
+      # Step 4: Install Chromium dependencies
+      - name: Install Chromium dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgbm-dev libnss3 libxshmfence1
+
+      # Step 5: Install Node.js dependencies
       - name: Install Node.js dependencies
         run: npm install
-
-      # Step 5: Install Chromium dependencies (if needed)
-      - name: Install Chromium dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgbm-dev libnss3 libxshmfence1
-
+        
       # Step 6: Run the bot with updated headless mode configuration and environment variables set correctly.
       - name: Running the bot
         env:

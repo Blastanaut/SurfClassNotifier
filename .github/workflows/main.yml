@@ -17,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'  # Use a stable LTS version of Node.js
+          node-version: '22'
 
       # Step 3: Cache node_modules to speed up installs
       - name: Cache node modules

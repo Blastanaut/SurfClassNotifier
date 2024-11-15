@@ -2,7 +2,7 @@ name: Surf Class Notifier
 
 on:
   schedule:
-    - cron: '0 7-22 * * *'  # Run every hour from 7 AM to 10 PM UTC
+    - cron: '0,30 7-22 * * *'  # Run every hour from 7 AM to 10 PM UTC
   workflow_dispatch:  # Manually trigger the workflow
 
 jobs:

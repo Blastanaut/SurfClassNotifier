@@ -8,8 +8,6 @@ const { scrapeWaveEnergyAndDates, loginToSite, launchBrowser, clickOnDate } = re
 const { downloadFromDropbox, uploadToDropbox } = require('./dropboxService');
 
 const LOCATION_NAME = process.env.LOCATION_NAME;               // Location name for weather API
-
-
 const SURF_REGISTERING_WEBSITE_MESSAGE_HEADER = process.env.SURF_REGISTERING_WEBSITE_MESSAGE_HEADER  // Link to surf forecast website
 
 // Define recurring classes or patterns to ignore in notifications only

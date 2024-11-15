@@ -68,40 +68,40 @@ async function scrapeWaveEnergyAndDates() {
 // Function to log into the surf registration site by entering email and password and clicking the login button.
 async function loginToSite(page) {
     // Step 1: Navigate to the login page
-    console.log("🔄Navigating to the login page...");
+    //console.log("🔄Navigating to the login page...");
     await page.goto(SURF_REGISTERING_WEBSITE_LINK);
 
     // Short delay to allow the page to load fully
     await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log("✅Login page loaded.");
+    //console.log("✅Login page loaded.");
 
     // Step 2: Enter email into the login field
-    console.log("✏️Typing in the email...");
+    //console.log("✏️Typing in the email...");
     await page.type('#login', EMAIL); // Typing email into the input field with id 'login'
-    console.log("✅Email entered.");
+    //console.log("✅Email entered.");
 
     // Step 3: Enter password into the password field
-    console.log("✏️Typing in the password...");
+    //console.log("✏️Typing in the password...");
     await page.type('#password', PASSWORD); // Typing password into the input field with id 'password'
-    console.log("✅Password entered.");
+    //console.log("✅Password entered.");
 
     // Step 4: Wait until the login button becomes visible to ensure it is clickable
-    console.log("⏳Waiting for the login button to become visible...");
+    //console.log("⏳Waiting for the login button to become visible...");
     await page.waitForSelector('#but_dados', { visible: true });
 
     // Extra delay to ensure the password field is fully populated before clicking
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("✅Login button is visible.");
+    //console.log("✅Login button is visible.");
 
     // Step 5: Click the login button to submit the form
-    console.log("🔘Attempting to click the login button...");
+    //console.log("🔘Attempting to click the login button...");
     await page.click('#but_dados');
-    console.log("✅Login button clicked.");
+    //console.log("✅Login button clicked.");
 
     // Step 6: Wait for navigation to complete after login
-    console.log("⏳Waiting for navigation to complete after login...");
+   // console.log("⏳Waiting for navigation to complete after login...");
     await page.waitForNavigation();
-    console.log("✅Navigation complete. Login successful.");
+    //console.log("✅Navigation complete. Login successful.");
 }
 
 // Function to launch a new instance of the Puppeteer browser with specified settings for optimized performance and compatibility.

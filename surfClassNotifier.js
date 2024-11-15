@@ -132,13 +132,13 @@ async function checkForNewClasses() {
                         if (!performanceClassesByTime[classTime]) {
                             performanceClassesByTime[classTime] = [];
                         }
-                        performanceClassesByTime[classTime].push(`[⚡${energyInfo}🏄🗓️️](${calendarLink})${formattedClassName} (${formattedCoachName})`);
+                        performanceClassesByTime[classTime].push(`[⚡${energyInfo}🏄🗓️️${formattedClassName} (${formattedCoachName})](${calendarLink})`);
                         console.log(`🔔Notification sent for performance class:`, formattedClassName, classTime, formattedCoachName, energyInfo);
                     } else {
                         if (!otherClassesByTime[classTime]) {
                             otherClassesByTime[classTime] = [];
                         }
-                        otherClassesByTime[classTime].push(`[⚡${energyInfo}🏄🗓️️️](${calendarLink})${formattedClassName} (${formattedCoachName})`);
+                        otherClassesByTime[classTime].push(`[⚡${energyInfo}🏄🗓️️️${formattedClassName} (${formattedCoachName})](${calendarLink})`);
                         console.log(`🔔Notification sent for other class:`, formattedClassName, classTime, formattedCoachName, energyInfo);
                     }
                 });

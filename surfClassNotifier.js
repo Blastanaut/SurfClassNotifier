@@ -1,4 +1,3 @@
-require('dotenv').config();
 const config = require('./config');
 const moment = require('moment');
 const { initializeDatabase, getClassData, saveClassData } = require('./database');

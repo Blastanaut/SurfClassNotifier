@@ -21,14 +21,15 @@ async function sendTelegramMessage(message) {
         );
 
         // Send the same message to the public channel
-        await bot.sendMessage(
+        /**await bot.sendMessage(
             PUBLIC_CHANNEL_TOKEN,    // Public channel token or ID
             message,
             {
                 parse_mode: 'Markdown',
                 disable_web_page_preview: true
             }
-        );
+         ); */
+
 
         console.log('✅Message sent to both chat and channel');
     } catch (error) {

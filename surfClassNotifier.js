@@ -43,7 +43,7 @@ async function checkForNewClasses() {
         await page.evaluate(() => {
             open_page("calendario_aulas", "&source=mes");
         });
-        await new Promise(resolve => setTimeout(resolve, 1000));  // Short delay for calendar data loading
+        await new Promise(resolve => setTimeout(resolve, 5000));  // Short delay for calendar data loading
 
         // Step 3: Loop through the next 10 days to check for available classes
         for (let i = 0; i <= 10; i++) {
@@ -54,7 +54,7 @@ async function checkForNewClasses() {
 
             // Click on each date in the calendar to load available classes for that day
             if (!await clickOnDate(page, formattedDate)) continue;  // Skip if date click fails
-            await new Promise(resolve => setTimeout(resolve, 500));  // Wait for data to load
+            await new Promise(resolve => setTimeout(resolve, 2000));  // Wait for data to load
 
             // Step 4: Extract class data for the selected date
             const classCounts = await page.evaluate(() => {

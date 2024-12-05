@@ -105,7 +105,7 @@ async function checkForNewClasses() {
             // Step 7: Prepare and send notification message for new, non-recurring classes
             if (notifyClasses.length > 0) {
                 const weatherMessage = await getWeather(LOCATION_NAME, formattedDate);
-                let message = `[${friendlyDate}](${SURF_REGISTERING_WEBSITE_MESSAGE_HEADER}) ${weatherMessage}\n`;
+                let message = `[${friendlyDate}](${SURF_REGISTERING_WEBSITE_MESSAGE_HEADER})\n`; //${weatherMessage}
 
                 const performanceClassesByTime = {};
                 const otherClassesByTime = {};

@@ -20,6 +20,8 @@ const recurringClasses = [
     { className: 'PRIVADA'},
     { className: 'SURF ADAPTADO'},
     { className: 'GRUPO'},
+    { className: 'ONDA SOCIAL'},
+    { className: 'TREINO FÍSICO GROMS - FIT2SURF'},
     // Add classes here to stop notifications, they will still be stored in the database
 ];
 

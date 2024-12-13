@@ -1,15 +1,15 @@
 const fetch = require('isomorphic-fetch');
 const config = require('./config');
 
-const WEATHERAPI_API_KEY = process.env.WEATHERAPI_API_KEY;      // API key for fetching weather data
+const WEATHERAPI_API_KEY = process.env.WEATHERAPI_API_KEY; // API key for OpenWeather
 
 // Function to retrieve weather data for a specified city and date
 async function getWeather(city, date) {
-    // Construct the API URL with query parameters for location and date
-    const url = `https://api.weatherapi.com/v1/history.json?key=${WEATHERAPI_API_KEY}&q=${city}&dt=${date}&aqi=no`;
+    // Fetch forecast data from OpenWeather
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${WEATHERAPI_API_KEY}&units=metric`;
 
     try {
-        // Fetch weather data from WeatherAPI
+        // Fetch weather data from OpenWeather API
         const response = await fetch(url);
 
         // Check if the response is successful (status 200)
@@ -20,13 +20,30 @@ async function getWeather(city, date) {
         // Parse the JSON response data
         const data = await response.json();
 
-        // Extract temperature (rounded average temp for the day) and weather condition text
-        const temperature = Math.round(data.forecast.forecastday[0].day.avgtemp_c);
-        const weather = data.forecast.forecastday[0].day.condition.text.toLowerCase();
+        // Filter forecasts to find the closest match to the specified date
+        const targetDate = new Date(date);
+        const forecast = data.list.find((entry) => {
+            const forecastDate = new Date(entry.dt * 1000); // Convert timestamp to Date
+            return (
+                forecastDate.getFullYear() === targetDate.getFullYear() &&
+                forecastDate.getMonth() === targetDate.getMonth() &&
+                forecastDate.getDate() === targetDate.getDate()
+            );
+        });
+
+        // If no forecast is found for the exact date, handle it
+        if (!forecast) {
+            console.warn(`No forecast available for ${date}`);
+            return null;
+        }
+
+        // Extract temperature and weather condition description
+        const temperature = Math.round(forecast.main.temp);
+        const weather = forecast.weather[0].description.toLowerCase();
 
         // Select an emoji based on the weather condition
         let emoji = '';
-        if (weather.includes('clear') || weather.includes('sunny')) {
+        if (weather.includes('clear') || weather.includes('sun')) {
             emoji = '☀️'; // Sunny weather
         } else if (weather.includes('rain') || weather.includes('drizzle')) {
             emoji = '🌧️'; // Rainy weather
@@ -34,6 +51,8 @@ async function getWeather(city, date) {
             emoji = '☁️'; // Cloudy weather
         } else if (weather.includes('storm') || weather.includes('thunder')) {
             emoji = '⛈️'; // Stormy weather
+        } else if (weather.includes('snow')) {
+            emoji = '❄️'; // Snowy weather
         } else {
             emoji = '🌥️'; // Default to partly cloudy
         }

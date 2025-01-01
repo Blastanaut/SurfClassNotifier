@@ -46,7 +46,8 @@ async function checkForNewClasses() {
             open_page("calendario_aulas", "&source=mes");
         });
         await new Promise(resolve => setTimeout(resolve, 10000));  // Short delay for calendar data loading
-
+const rawDate = moment();
+console.log('Raw Date (moment):', rawDate.format()); // Default ISO 8601 format
         // Step 3: Loop through the next 10 days to check for available classes
         for (let i = 0; i <= 10; i++) {
             const dayFromNow = moment().add(i, 'days');

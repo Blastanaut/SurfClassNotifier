@@ -60,7 +60,7 @@ async function checkForNewClasses() {
             // Construct the formatted date string
             const formattedDate = `${year}-${zeroBasedMonth}-${day}`; // +1 for proper display if needed
             console.log(`Formatted Date: ${formattedDate}`);
-            const friendlyDate = dayFromNow.month(dayFromNow.month() + 1).format('MMMM D, dddd');  // User-friendly date format
+            const friendlyDate = dayFromNow.month(dayFromNow.month()).format('MMMM D, dddd');  // User-friendly date format
 
             // Click on each date in the calendar to load available classes for that day
             if (!await clickOnDate(page, formattedDate)) continue;  // Skip if date click fails

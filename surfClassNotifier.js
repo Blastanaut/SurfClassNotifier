@@ -58,7 +58,7 @@ async function checkForNewClasses() {
             const day = dayFromNow.date(); // Day of the month
 
             // Construct the formatted date string
-            const formattedDate = `${year}-${zeroBasedMonth + 1}-${day}`; // +1 for proper display if needed
+            const formattedDate = `${year}-${zeroBasedMonth}-${day}`; // +1 for proper display if needed
             console.log(`Formatted Date: ${formattedDate}`);
             const friendlyDate = dayFromNow.month(dayFromNow.month() + 1).format('MMMM D, dddd');  // User-friendly date format
 

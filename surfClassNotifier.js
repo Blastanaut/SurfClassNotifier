@@ -45,19 +45,26 @@ async function checkForNewClasses() {
         await page.evaluate(() => {
             open_page("calendario_aulas", "&source=mes");
         });
-        await new Promise(resolve => setTimeout(resolve, 10000));  // Short delay for calendar data loading
-const rawDate = moment();
-console.log('Raw Date (moment):', rawDate.format()); // Default ISO 8601 format
+        await new Promise(resolve => setTimeout(resolve, 5000));  // Short delay for calendar data loading
+
         // Step 3: Loop through the next 10 days to check for available classes
         for (let i = 0; i <= 10; i++) {
+            // Get the date i days from now
             const dayFromNow = moment().add(i, 'days');
-            const adjustedMonth = dayFromNow.month() - 1;  // Adjusts month to match website format (0-indexed)
-            const formattedDate = dayFromNow.month(adjustedMonth).format('YYYY-MM-D');
+
+            // Format the date with a 0-based month for the website
+            const year = dayFromNow.year();
+            const zeroBasedMonth = dayFromNow.month(); // Month is already 0-based in Moment.js
+            const day = dayFromNow.date(); // Day of the month
+
+            // Construct the formatted date string
+            const formattedDate = `${year}-${zeroBasedMonth + 1}-${day}`; // +1 for proper display if needed
+            console.log(`Formatted Date: ${formattedDate}`);
             const friendlyDate = dayFromNow.month(dayFromNow.month() + 1).format('MMMM D, dddd');  // User-friendly date format
 
             // Click on each date in the calendar to load available classes for that day
             if (!await clickOnDate(page, formattedDate)) continue;  // Skip if date click fails
-            await new Promise(resolve => setTimeout(resolve, 5000));  // Wait for data to load
+            await new Promise(resolve => setTimeout(resolve, 2000));  // Wait for data to load
 
             // Step 4: Extract class data for the selected date
             const classCounts = await page.evaluate(() => {

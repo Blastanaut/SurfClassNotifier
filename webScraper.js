@@ -108,20 +108,27 @@ async function loginToSite(page) {
 async function launchBrowser() {
     // Launch a new Puppeteer browser instance with custom options
     const browser = await puppeteer.launch({
-        // 'headless: "new"' initiates a headless browser in newer versions of Puppeteer for more stability and performance
+        // 'headless: "new"' uses the new headless mode introduced in recent Puppeteer versions
         headless: 'new',
 
-        // Arguments for optimizing and stabilizing the browser instance
+        // Arguments to optimize and stabilize the browser instance
         args: [
-            '--no-sandbox',                   // Disables the sandbox for enhanced compatibility on certain platforms
-            '--disable-setuid-sandbox',        // Disables the setuid sandbox, often required in some containerized environments
-            '--disable-gpu',                   // Disables GPU hardware acceleration, useful in headless mode
-            '--disable-dev-shm-usage'          // Reduces memory usage on systems with limited shared memory
-        ]
+            '--no-sandbox',                   // Disables the sandbox for enhanced compatibility in CI/CD or containerized environments
+            '--disable-setuid-sandbox',       // Disables the setuid sandbox, often required for non-root environments
+            '--disable-gpu',                  // Disables GPU hardware acceleration, reduces overhead in headless mode
+            '--disable-dev-shm-usage',        // Bypasses /dev/shm for systems with limited shared memory
+            '--single-process',               // Runs browser in a single process (useful in some CI environments)
+            '--no-zygote'                     // Disables the zygote process for reducing resource usage
+        ],
+
+        // Set a reasonable default timeout for browser operations
+        timeout: 60000, // 60 seconds
     });
 
-    return browser; // Return the browser instance to be used in other functions
+    return browser;
 }
+
+module.exports = { launchBrowser };
 
 // Function to click on a specific date element on the page based on a provided formatted date.
 async function clickOnDate(page, formattedDate) {

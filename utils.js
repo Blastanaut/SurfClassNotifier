@@ -2,15 +2,32 @@ const moment = require('moment');
 
 // Function to generate a Google Calendar link for scheduling a class
 function createGoogleCalendarLink(className, date, time, coach) {
-    // Split the time range into start and end times
-    const [start, end] = time.split(' - ');
+    try {
+        // Validate and split the time range
+        if (!time.includes(' - ')) {
+            throw new Error(`Invalid time format: ${time}. Expected format: "HH:mm - HH:mm"`);
+        }
+        const [start, end] = time.split(' - ');
 
-    // Parse and adjust dates to the Google Calendar format, accounting for month offset if needed
-    const startDate = moment(`${date} ${start}`, 'YYYY-MM-DD HH:mm').add(1, 'months'); // Adjusts for month offset
-    const endDate = moment(`${date} ${end}`, 'YYYY-MM-DD HH:mm').add(1, 'months');
+        // Adjust the date to account for the website's zero-based month format
+        const [year, month, day] = date.split('-');
+        const adjustedDate = `${year}-${String(Number(month) + 1).padStart(2, '0')}-${day}`;
 
-    // Construct the Google Calendar link with event details and encoded parameters
-    return `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(className)}&dates=${startDate.format('YYYYMMDDTHHmmssZ')}/${endDate.format('YYYYMMDDTHHmmssZ')}&details=${encodeURIComponent(`Coach: ${coach}`)}`;
+        // Parse the start and end dates
+        const startDate = moment(`${adjustedDate} ${start}`, 'YYYY-MM-DD HH:mm', true);
+        const endDate = moment(`${adjustedDate} ${end}`, 'YYYY-MM-DD HH:mm', true);
+
+        // Check for invalid dates
+        if (!startDate.isValid() || !endDate.isValid()) {
+            throw new Error(`Invalid date or time provided: date="${date}", time="${time}"`);
+        }
+
+        // Construct and return the Google Calendar link
+        return `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(className)}&dates=${startDate.format('YYYYMMDDTHHmmssZ')}/${endDate.format('YYYYMMDDTHHmmssZ')}&details=${encodeURIComponent(`Coach: ${coach}`)}`;
+    } catch (error) {
+        console.error('Error creating Google Calendar link:', error.message);
+        return null; // Return null to indicate a failure
+    }
 }
 
 // Function to convert a string to title case, capitalizing the first letter of each word

@@ -38,7 +38,7 @@ This project is designed to check for new classes at supported RegyBox.pt school
 
 Start the script by running:
 ```bash
-node index.js
+node surfClassNotifier.js
 ```
 
 ## Environment Variables

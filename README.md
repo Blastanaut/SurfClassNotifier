@@ -1,6 +1,6 @@
 # RegyBox.pt to Telegram Notification System
 
-This project is designed to check for new classes at supported regibox.pt schools, compare them with previously stored data, and send notifications for new classes via Telegram.
+This project is designed to check for new classes at supported RegyBox.pt schools, compare them with previously stored data, and send notifications for new classes via Telegram.
 
 ## Table of Contents
 

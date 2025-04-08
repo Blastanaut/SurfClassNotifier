@@ -7,7 +7,7 @@ on:
 
 jobs:
   surf_class_check:
-    runs-on: ubuntu-20.04  # Use a stable version of Ubuntu
+    runs-on: ubuntu-latest  # Use a stable version of Ubuntu
     steps:
       # Step 1: Checkout the repository
       - name: Checkout repository

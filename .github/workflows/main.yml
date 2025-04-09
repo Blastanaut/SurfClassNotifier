@@ -21,9 +21,8 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
-      - name: Install Playwright and Browsers (cached)
-        uses: microsoft/playwright-github-action@v1
-
+      - name: Install Chromium Only (Playwright)
+        run: npx playwright install chromium
 
       - name: Running the bot
         run: npm start

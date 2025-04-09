@@ -103,9 +103,6 @@ async function loginToSite(page) {
     // Step 6: Wait for navigation to complete after login
     console.log("⏳Waiting for navigation to complete after login...");
     console.log("✅Navigation complete. Login successful.");
-
-    // 📸 Optional debug screenshot
-    await page.screenshot({ path: 'login_debug.png' });
 }
 
 // Function to launch a new instance of the Puppeteer browser with specified settings for optimized performance and compatibility.

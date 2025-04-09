@@ -7,19 +7,17 @@ on:
 
 jobs:
   surf_class_check:
-    runs-on: ubuntu-latest  # Use a stable version of Ubuntu
+    runs-on: ubuntu-latest
+
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'  # Use Node.js 18 for better compatibility
+          node-version: '22'
 
-      # Step 3: Install Chromium dependencies
       - name: Install Chromium dependencies
         run: |
           sudo apt-get update
@@ -32,12 +30,14 @@ jobs:
             libxss1 libxtst6 ca-certificates fonts-liberation lsb-release \
             xdg-utils wget libgbm-dev libxshmfence1
 
-      # Step 4: Install Node.js dependencies
       - name: Install Node.js dependencies
         run: npm ci
 
-      # Step 5: Run the bot
+      - name: Install Chromium for Puppeteer
+        run: npx puppeteer browsers install chrome
+
       - name: Running the bot
+        run: npm start
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
@@ -53,4 +53,3 @@ jobs:
           SURF_FORECAST_LINK: ${{ secrets.SURF_FORECAST_LINK }}
           LOCATION_NAME: ${{ secrets.LOCATION_NAME }}
           SURF_REGISTERING_WEBSITE_MESSAGE_HEADER: ${{ secrets.SURF_REGISTERING_WEBSITE_MESSAGE_HEADER }}
-        run: npm start

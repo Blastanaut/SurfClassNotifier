@@ -38,7 +38,7 @@ async function checkForNewClasses() {
     try {
         // Step 2: Launch the browser and log in to the surf registration site
         browser = await launchBrowser();
-        const page = await browser.newPage();
+        const context = await browser.newContext();
         const page = await context.newPage();
         await loginToSite(page);  // Logs into the site and waits for login to complete
 
@@ -170,7 +170,6 @@ async function checkForNewClasses() {
             await new Promise(resolve => setTimeout(resolve, 1000));  // Short delay before checking the next date
         }
     } catch (error) {
-        console.error('Error during Puppeteer operation:', error);  // Log any encountered errors
         console.error('Error during Playwright operation:', error);  // Log any encountered errors
     } finally {
         if (browser) await browser.close();  // Ensure the browser closes

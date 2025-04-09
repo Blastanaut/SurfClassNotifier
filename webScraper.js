@@ -1,15 +1,14 @@
-const puppeteer = require('puppeteer');
+const { chromium } = require('playwright');
 const config = require('./config');
 const SURF_FORECAST_LINK = process.env.SURF_FORECAST_LINK;  // Link to surf forecasts
 const SURF_REGISTERING_WEBSITE_LINK = process.env.SURF_REGISTERING_WEBSITE_LINK;  // Link to surf class website
-const EMAIL = process.env.WEB_EMAIL;                      // Email for surf class website login
-const PASSWORD = process.env.WEB_PASSWORD;                // Password for surf class website login
 
 // Function to scrape wave energy values and their corresponding dates from a surf forecast page.
 async function scrapeWaveEnergyAndDates() {
     // Initialize the browser and page
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+    const browser = await chromium.launch();
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
     // Navigate to the surf forecast page and wait for the table to load
     await page.goto(SURF_FORECAST_LINK, { waitUntil: 'domcontentloaded' });
@@ -68,63 +67,61 @@ async function scrapeWaveEnergyAndDates() {
 // Function to log into the surf registration site by entering email and password and clicking the login button.
 async function loginToSite(page) {
     // Step 1: Navigate to the login page
-    //console.log("🔄Navigating to the login page...");
-    await page.goto(SURF_REGISTERING_WEBSITE_LINK);
+    console.log("🔄Navigating to the login page...");
+    await page.goto(SURF_REGISTERING_WEBSITE_LINK, { waitUntil: 'load' });
 
     // Short delay to allow the page to load fully
     await new Promise(resolve => setTimeout(resolve, 2000));
-    //console.log("✅Login page loaded.");
+    console.log("✅Login page loaded.");
 
     // Step 2: Enter email into the login field
-    //console.log("✏️Typing in the email...");
-    await page.type('#login', EMAIL); // Typing email into the input field with id 'login'
-    //console.log("✅Email entered.");
+    console.log("✏️Typing in the email...");
+    await page.fill('#login', config.EMAIL); // Filling in the input field with id 'login'
+    console.log("✅Email entered.");
 
     // Step 3: Enter password into the password field
-    //console.log("✏️Typing in the password...");
-    await page.type('#password', PASSWORD); // Typing password into the input field with id 'password'
-    //console.log("✅Password entered.");
+    console.log("✏️Typing in the password...");
+    await page.fill('#password', config.PASSWORD); // Filling in the input field with id 'password'
+    console.log("✅Password entered.");
 
     // Step 4: Wait until the login button becomes visible to ensure it is clickable
-    //console.log("⏳Waiting for the login button to become visible...");
-    await page.waitForSelector('#but_dados', { visible: true });
+    console.log("⏳Waiting for the login button to become visible...");
+    await page.waitForSelector('#but_dados', { state: 'visible' });
 
     // Extra delay to ensure the password field is fully populated before clicking
     await new Promise(resolve => setTimeout(resolve, 1000));
-    //console.log("✅Login button is visible.");
+    console.log("✅Login button is visible.");
 
     // Step 5: Click the login button to submit the form
-    //console.log("🔘Attempting to click the login button...");
-    await page.click('#but_dados');
-    //console.log("✅Login button clicked.");
+    console.log("🔘Attempting to click the login button...");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: 'networkidle' }),
+        page.click('#but_dados')
+    ]);
+    console.log("✅Login button clicked.");
 
     // Step 6: Wait for navigation to complete after login
-   // console.log("⏳Waiting for navigation to complete after login...");
-    await page.waitForNavigation();
-    //console.log("✅Navigation complete. Login successful.");
+    console.log("⏳Waiting for navigation to complete after login...");
+    console.log("✅Navigation complete. Login successful.");
+
+    // 📸 Optional debug screenshot
+    await page.screenshot({ path: 'login_debug.png' });
 }
 
 // Function to launch a new instance of the Puppeteer browser with specified settings for optimized performance and compatibility.
 async function launchBrowser() {
-    // Launch a new Puppeteer browser instance with custom options
-    const browser = await puppeteer.launch({
-        // 'headless: "new"' uses the new headless mode introduced in recent Puppeteer versions
-        headless: 'new',
-
-        // Arguments to optimize and stabilize the browser instance
+    const browser = await chromium.launch({
+        headless: true,
         args: [
-            '--no-sandbox',                   // Disables the sandbox for enhanced compatibility in CI/CD or containerized environments
-            '--disable-setuid-sandbox',       // Disables the setuid sandbox, often required for non-root environments
-            '--disable-gpu',                  // Disables GPU hardware acceleration, reduces overhead in headless mode
-            '--disable-dev-shm-usage',        // Bypasses /dev/shm for systems with limited shared memory
-            '--single-process',               // Runs browser in a single process (useful in some CI environments)
-            '--no-zygote'                     // Disables the zygote process for reducing resource usage
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+            '--single-process',
+            '--no-zygote'
         ],
-
-        // Set a reasonable default timeout for browser operations
-        timeout: 60000, // 60 seconds
+        timeout: 60000,
     });
-
     return browser;
 }
 

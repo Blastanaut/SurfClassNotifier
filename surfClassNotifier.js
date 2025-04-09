@@ -39,6 +39,7 @@ async function checkForNewClasses() {
         // Step 2: Launch the browser and log in to the surf registration site
         browser = await launchBrowser();
         const page = await browser.newPage();
+        const page = await context.newPage();
         await loginToSite(page);  // Logs into the site and waits for login to complete
 
         // Navigate to the calendar page where classes are displayed
@@ -170,6 +171,7 @@ async function checkForNewClasses() {
         }
     } catch (error) {
         console.error('Error during Puppeteer operation:', error);  // Log any encountered errors
+        console.error('Error during Playwright operation:', error);  // Log any encountered errors
     } finally {
         if (browser) await browser.close();  // Ensure the browser closes
         await uploadToDropbox('/surfClasses.db', './surfClasses.db');  // Save updated class data to Dropbox

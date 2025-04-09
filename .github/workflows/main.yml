@@ -21,8 +21,9 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
-      - name: Install Playwright Browsers and Dependencies
-        run: npx playwright install --with-deps
+      - name: Install Playwright and Browsers (cached)
+        uses: microsoft/playwright-github-action@v1
+
 
       - name: Running the bot
         run: npm start

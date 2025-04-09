@@ -7,7 +7,8 @@ on:
 
 jobs:
   surf_class_check:
-    runs-on: ubuntu-latest  # Use a stable version of Ubuntu
+    runs-on: ubuntu-latest
+
     steps:
       # Step 1: Checkout the repository
       - name: Checkout repository
@@ -17,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'  # Use Node.js 18 for better compatibility
+          node-version: '22'
 
       # Step 3: Install Chromium dependencies
       - name: Install Chromium dependencies
@@ -36,7 +37,11 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
-      # Step 5: Run the bot
+      # ✅ Step 5: Install Chromium for Puppeteer (REQUIRED in v21+)
+      - name: Install Chromium for Puppeteer
+        run: npx puppeteer browsers install chrome
+
+      # Step 6: Run the bot
       - name: Running the bot
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -47,10 +52,4 @@ jobs:
           DROPBOX_CLIENT_ID: ${{ secrets.DROPBOX_CLIENT_ID }}
           DROPBOX_CLIENT_SECRET: ${{ secrets.DROPBOX_CLIENT_SECRET }}
           DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
-          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
-          WEATHERAPI_API_KEY: ${{ secrets.WEATHERAPI_API_KEY }}
-          SURF_REGISTERING_WEBSITE_LINK: ${{ secrets.SURF_REGISTERING_WEBSITE_LINK }}
-          SURF_FORECAST_LINK: ${{ secrets.SURF_FORECAST_LINK }}
-          LOCATION_NAME: ${{ secrets.LOCATION_NAME }}
-          SURF_REGISTERING_WEBSITE_MESSAGE_HEADER: ${{ secrets.SURF_REGISTERING_WEBSITE_MESSAGE_HEADER }}
-        run: npm start
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX

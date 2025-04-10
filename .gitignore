@@ -5,6 +5,5 @@
 .idea/vcs.xml
 /node_modules
 surfClasses.db
-surfClasses.db
-surfClasses.db
 *.db
+.DS_Store

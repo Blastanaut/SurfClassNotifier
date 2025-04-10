@@ -1,33 +1,39 @@
 const moment = require('moment');
 
-// Function to generate a Google Calendar link for scheduling a class
-function createGoogleCalendarLink(className, date, time, coach) {
+/**
+ * Generates a Google Calendar event link.
+ * @param {string} className - Name of the surf class.
+ * @param {string} date - Class date in YYYY-MM-DD format.
+ * @param {string} startTime - Start time in HH:mm format.
+ * @param {string} endTime - End time in HH:mm format.
+ * @param {string} coach - Coach name.
+ * @returns {string|null} - Google Calendar link or null if invalid.
+ */
+function createGoogleCalendarLink(className, date, startTime, endTime, coach) {
     try {
-        // Validate and split the time range
-        if (!time.includes(' - ')) {
-            throw new Error(`Invalid time format: ${time}. Expected format: "HH:mm - HH:mm"`);
-        }
-        const [start, end] = time.split(' - ');
+        const startDate = moment(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm', true);
+        const endDate = moment(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm', true);
 
-        // Adjust the date to account for the website's zero-based month format
-        const [year, month, day] = date.split('-');
-        const adjustedDate = `${year}-${String(Number(month) + 1).padStart(2, '0')}-${day}`;
-
-        // Parse the start and end dates
-        const startDate = moment(`${adjustedDate} ${start}`, 'YYYY-MM-DD HH:mm', true);
-        const endDate = moment(`${adjustedDate} ${end}`, 'YYYY-MM-DD HH:mm', true);
-
-        // Check for invalid dates
         if (!startDate.isValid() || !endDate.isValid()) {
-            throw new Error(`Invalid date or time provided: date="${date}", time="${time}"`);
+            throw new Error(`Invalid date/time: ${date}, ${startTime} - ${endTime}`);
         }
 
-        // Construct and return the Google Calendar link
         return `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(className)}&dates=${startDate.format('YYYYMMDDTHHmmssZ')}/${endDate.format('YYYYMMDDTHHmmssZ')}&details=${encodeURIComponent(`Coach: ${coach}`)}`;
     } catch (error) {
         console.error('Error creating Google Calendar link:', error.message);
-        return null; // Return null to indicate a failure
+        return null;
     }
+}
+
+
+// Function to split a class time range into start and end times
+function splitClassTime(classTime) {
+    if (!classTime.includes(' - ')) {
+        return { start: null, end: null }; // Return nulls if the format is invalid
+    }
+
+    const [start, end] = classTime.split(' - ').map(s => s.trim());
+    return { start, end };
 }
 
 // Function to convert a string to title case, capitalizing the first letter of each word
@@ -52,5 +58,6 @@ function getPeriodFromClassTime(classTime) {
 module.exports = {
     createGoogleCalendarLink,
     toTitleCase,
-    getPeriodFromClassTime
+    getPeriodFromClassTime,
+    splitClassTime
 };

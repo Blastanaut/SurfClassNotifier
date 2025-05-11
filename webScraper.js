@@ -66,43 +66,40 @@ async function scrapeWaveEnergyAndDates() {
 
 // Function to log into the surf registration site by entering email and password and clicking the login button.
 async function loginToSite(page) {
-    // Step 1: Navigate to the login page
-    console.log("🔄Navigating to the login page...");
-    await page.goto(SURF_REGISTERING_WEBSITE_LINK, { waitUntil: 'load' });
+    console.log("🔄Navigating to the login page…");
+    await page.goto(SURF_REGISTERING_WEBSITE_LINK, { waitUntil: 'domcontentloaded' });
 
-    // Short delay to allow the page to load fully
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log("✅Login page loaded.");
+    /* If the form is hidden behind a “Log in / Entrar” button, click it first */
+    const trigger = page.locator('text=/login|entrar|sign in/i').first();
+    if (await trigger.isVisible()) {
+        console.log("👉 Clicking login trigger…");
+        await trigger.click();
+    }
 
-    // Step 2: Enter email into the login field
-    console.log("✏️Typing in the email...");
-    await page.fill('#login', config.EMAIL); // Filling in the input field with id 'login'
-    console.log("✅Email entered.");
+    /* ----------  locate the visible inputs  ---------- */
+    const emailInput = page.locator(
+        'input[id^="login"]:not([type="hidden"]), ' +
+        'input[placeholder*="mail" i]:not([type="hidden"])'
+    );
+    const passwordInput = page.locator('input[type="password"]');
 
-    // Step 3: Enter password into the password field
-    console.log("✏️Typing in the password...");
-    await page.fill('#password', config.PASSWORD); // Filling in the input field with id 'password'
-    console.log("✅Password entered.");
+    await Promise.all([
+        emailInput.waitFor({ state: 'visible' }),
+        passwordInput.waitFor({ state: 'visible' })
+    ]);
 
-    // Step 4: Wait until the login button becomes visible to ensure it is clickable
-    console.log("⏳Waiting for the login button to become visible...");
-    await page.waitForSelector('#but_dados', { state: 'visible' });
+    /* ----------  fill & submit  ---------- */
+    console.log("✏️Typing credentials…");
+    await emailInput.fill(config.EMAIL);
+    await passwordInput.fill(config.PASSWORD);
 
-    // Extra delay to ensure the password field is fully populated before clicking
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("✅Login button is visible.");
-
-    // Step 5: Click the login button to submit the form
-    console.log("🔘Attempting to click the login button...");
+    const submitBtn = page.locator('#but_dados, button[type="submit"]');
     await Promise.all([
         page.waitForNavigation({ waitUntil: 'networkidle' }),
-        page.click('#but_dados')
+        submitBtn.click()
     ]);
-    console.log("✅Login button clicked.");
 
-    // Step 6: Wait for navigation to complete after login
-    console.log("⏳Waiting for navigation to complete after login...");
-    console.log("✅Navigation complete. Login successful.");
+    console.log("✅Login successful.");
 }
 
 // Function to launch a new instance of the Puppeteer browser with specified settings for optimized performance and compatibility.

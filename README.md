@@ -104,7 +104,7 @@ This function performs the following steps:
 1. Fetch initial wave energy data and download existing class data from Dropbox.
 2. Launch the browser and log in to the surf registration site.
 3. Loop through the next 10 days to check for available classes.
-4. Extract class data and the list of users signed up for each class for the selected date.
+4. For each class on the selected date, open its detail popup to capture the list of signed up users.
 5. Compare extracted classes with previously stored classes for the same date.
 6. Store all new classes along with the user lists in the database and prepare notifications.
 7. Send notification message for new, non-recurring classes via Telegram.

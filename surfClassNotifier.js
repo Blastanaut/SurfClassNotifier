@@ -81,28 +81,46 @@ async function checkForNewClasses() {
                 const classElements = document.querySelectorAll('.row.no-gap .col-50[align="left"]');
                 const timeElements = document.querySelectorAll('.row.no-gap .col[align="left"]:not(.col-auto)');
                 const coachElements = document.querySelectorAll('.row.no-gap .col-50[align="right"]');
-                const rows = document.querySelectorAll('.row.no-gap');
                 const classData = [];
 
                 for (let i = 0; i < classElements.length; i++) {
                     const className = classElements[i].innerText.trim().toUpperCase();
-                    const classTime = timeElements[i]?.innerText.trim() || 'No time available';  // Default if time missing
-                    const coachName = coachElements[i]?.innerText.trim() || 'No coach available';  // Default if coach missing
+                    const classTime = timeElements[i]?.innerText.trim() || 'No time available';
+                    const coachName = coachElements[i]?.innerText.trim() || 'No coach available';
 
-                    let users = [];
-                    const row = rows[i];
-                    if (row) {
-                        let chips = row.querySelectorAll('.chip-label, .chip span, span.user-name');
-                        if (!chips.length && row.nextElementSibling) {
-                            chips = row.nextElementSibling.querySelectorAll('.chip-label, .chip span, span.user-name');
-                        }
-                        users = Array.from(chips).map(el => el.textContent.trim()).filter(Boolean);
-                    }
-
-                    classData.push({ className, classTime, coachName, signedUpUsers: users.join(', ') });
+                    classData.push({ className, classTime, coachName, rowIndex: i });
                 }
                 return classData;
             });
+
+            // Open each class details popup to gather the list of signed up users
+            const rowHandles = await page.$$('.row.no-gap');
+            for (const item of classCounts) {
+                item.signedUpUsers = '';
+                const row = rowHandles[item.rowIndex];
+                if (!row) continue;
+                try {
+                    await row.click();
+                    await page.waitForSelector('.popup.detalhes_aula.modal-in', { timeout: 3000 });
+                    const users = await page.evaluate(() => {
+                        return Array.from(document.querySelectorAll('.popup.detalhes_aula.modal-in .list .item-title'))
+                            .map(el => el.textContent.trim())
+                            .filter(Boolean);
+                    });
+                    item.signedUpUsers = users.join(', ');
+                    const back = await page.$('.popup.detalhes_aula.modal-in .but_back a');
+                    if (back) {
+                        await back.click();
+                        await page.waitForSelector('.popup.detalhes_aula.modal-in', { state: 'hidden', timeout: 2000 }).catch(() => {});
+                    }
+                } catch (err) {
+                    console.error('❌ Error retrieving participants:', err.message);
+                    try {
+                        const back = await page.$('.popup.detalhes_aula.modal-in .but_back a');
+                        if (back) await back.click();
+                    } catch (_) {}
+                }
+            }
 
             // Step 5: Compare extracted classes with previously stored classes for the same date
             const previousClasses = await new Promise(resolve => getClassData(formattedDate, resolve));

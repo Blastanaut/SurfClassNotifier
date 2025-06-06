@@ -1,5 +1,8 @@
 require('dotenv').config();
-const config = require('./config');
+const {
+    LOCATION_NAME,
+    SURF_REGISTERING_WEBSITE_MESSAGE_HEADER
+} = require('./config');
 const moment = require('moment');
 const {
     initializeDatabase,
@@ -15,8 +18,6 @@ const { toTitleCase, createGoogleCalendarLink, getPeriodFromClassTime } = requir
 const { scrapeWaveEnergyAndDates, loginToSite, launchBrowser, clickOnDate } = require('./webScraper');
 const { downloadFromDropbox, uploadToDropbox } = require('./dropboxService');
 const { splitClassTime } = require('./utils'); // make sure it's imported
-const LOCATION_NAME = process.env.LOCATION_NAME;               // Location name for weather API
-const SURF_REGISTERING_WEBSITE_MESSAGE_HEADER = process.env.SURF_REGISTERING_WEBSITE_MESSAGE_HEADER  // Link to surf forecast website
 
 // Define recurring classes or patterns to ignore in notifications only
 const recurringClasses = [

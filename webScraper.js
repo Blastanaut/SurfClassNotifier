@@ -1,7 +1,10 @@
 const { chromium } = require('playwright');
-const config = require('./config');
-const SURF_FORECAST_LINK = process.env.SURF_FORECAST_LINK;  // Link to surf forecasts
-const SURF_REGISTERING_WEBSITE_LINK = process.env.SURF_REGISTERING_WEBSITE_LINK;  // Link to surf class website
+const {
+    SURF_FORECAST_LINK,
+    SURF_REGISTERING_WEBSITE_LINK,
+    EMAIL,
+    PASSWORD
+} = require('./config');
 
 // Function to scrape wave energy values and their corresponding dates from a surf forecast page.
 async function scrapeWaveEnergyAndDates() {
@@ -90,8 +93,8 @@ async function loginToSite(page) {
 
     /* ----------  fill & submit  ---------- */
     console.log("✏️Typing credentials…");
-    await emailInput.fill(config.EMAIL);
-    await passwordInput.fill(config.PASSWORD);
+    await emailInput.fill(EMAIL);
+    await passwordInput.fill(PASSWORD);
 
     const submitBtn = page.locator('#but_dados, button[type="submit"]');
     await Promise.all([
@@ -118,8 +121,6 @@ async function launchBrowser() {
     });
     return browser;
 }
-
-module.exports = { launchBrowser };
 
 // Function to click on a specific date element on the page based on a provided formatted date.
 async function clickOnDate(page, formattedDate) {

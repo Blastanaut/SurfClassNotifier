@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf';
 import config from './config.js';
 
-const { TELEGRAM_TOKEN, CHAT_ID, PUBLIC_CHANNEL_TOKEN, ENABLE_TELEGRAM_PRIVATE, ENABLE_TELEGRAM_PUBLIC, SURF_REGISTERING_WEBSITE_MESSAGE_HEADER } = config;
+const { TELEGRAM_TOKEN, CHAT_ID, PUBLIC_CHANNEL_TOKEN, ENABLE_TELEGRAM_PRIVATE, ENABLE_TELEGRAM_PUBLIC, SURF_REGISTERING_WEBSITE_LINK } = config;
 
 // Debug flags (now controlled via config.js)
 const SEND_TO_PRIVATE = ENABLE_TELEGRAM_PRIVATE; // Set to false to disable private chat messages
@@ -34,7 +34,7 @@ async function sendTelegramMessage(message) {
 
 // Helper function to build and send the notification message
 async function buildAndSendNotificationMessage(performanceClassesByTime, otherClassesByTime, friendlyDate) {
-    let message = `[${friendlyDate}](${SURF_REGISTERING_WEBSITE_MESSAGE_HEADER})\n`;
+    let message = `[${friendlyDate}](${SURF_REGISTERING_WEBSITE_LINK})\n`;
 
     Object.keys(performanceClassesByTime).forEach(time => {
         message += `\n🥇Performance Classes:\n${time}: ${performanceClassesByTime[time].join(', ')}\n`;

@@ -8,7 +8,7 @@ import config from './config.js';
 // Destructure configuration settings for easier access
 const {
     LOCATION_NAME,
-    SURF_REGISTERING_WEBSITE_MESSAGE_HEADER,
+    SURF_REGISTERING_WEBSITE_LINK,
     ENABLE_DROPBOX_DOWNLOAD,
     ENABLE_DROPBOX_UPLOAD
 } = config;

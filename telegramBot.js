@@ -1,40 +1,49 @@
-const TelegramBot = require('node-telegram-bot-api');
-const config = require('./config');
+import { Telegraf } from 'telegraf';
+import config from './config.js';
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;        // Token for Telegram Bot
-const CHAT_ID = process.env.CHAT_ID;                      // Telegram chat ID for notifications
-const PUBLIC_CHANNEL_TOKEN = process.env.PUBLIC_CHANNEL_TOKEN;  // Public Telegram channel token if needed
+const { TELEGRAM_TOKEN, CHAT_ID, PUBLIC_CHANNEL_TOKEN, ENABLE_TELEGRAM_PRIVATE, ENABLE_TELEGRAM_PUBLIC, SURF_REGISTERING_WEBSITE_LINK } = config;
 
-const bot = new TelegramBot(config.TELEGRAM_TOKEN, { polling: true });
+// Debug flags (now controlled via config.js)
+const SEND_TO_PRIVATE = ENABLE_TELEGRAM_PRIVATE; // Set to false to disable private chat messages
+const SEND_TO_PUBLIC = ENABLE_TELEGRAM_PUBLIC;  // You can add a separate flag if needed
 
-// Function to send a Telegram message to both a private chat and a public channel
+const bot = new Telegraf(TELEGRAM_TOKEN);
+
 async function sendTelegramMessage(message) {
+    const recipients = [];
+    if (SEND_TO_PRIVATE) recipients.push(CHAT_ID);
+    if (SEND_TO_PUBLIC) recipients.push(PUBLIC_CHANNEL_TOKEN);
+
+    if (recipients.length === 0) {
+        console.log('⚠️ No recipients enabled for Telegram message.');
+        return;
+    }
+
     try {
-        // Send message to the private chat
-        await bot.sendMessage(
-            CHAT_ID,                // Private chat ID (environment variable or constant)
-            message,                // Message content
-            {
+        await Promise.all(
+            recipients.map(id => bot.telegram.sendMessage(id, message, {
                 parse_mode: 'Markdown',
                 disable_web_page_preview: true
-            }
+            }))
         );
-
-       await bot.sendMessage(
-            PUBLIC_CHANNEL_TOKEN,    // Public channel token or ID
-            message,
-            {
-                parse_mode: 'Markdown',
-                disable_web_page_preview: true
-            }
-        );
-
-        console.log('✅Message sent to both chat and channel');
+        console.log('✅ Message sent to enabled recipients');
     } catch (error) {
-        console.error('❌Error sending message to Telegram:', error.message);
+        console.error('❌ Error sending message to Telegram:', error.message);
     }
 }
 
-module.exports = {
-    sendTelegramMessage
-};
+// Helper function to build and send the notification message
+async function buildAndSendNotificationMessage(performanceClassesByTime, otherClassesByTime, friendlyDate) {
+    let message = `[${friendlyDate}](${SURF_REGISTERING_WEBSITE_LINK})\n`;
+
+    Object.keys(performanceClassesByTime).forEach(time => {
+        message += `\n🥇Performance Classes:\n${time}: ${performanceClassesByTime[time].join(', ')}\n`;
+    });
+    Object.keys(otherClassesByTime).forEach(time => {
+        message += `\nOther Classes:\n${time}: ${otherClassesByTime[time].join(', ')}\n`;
+    });
+
+    await sendTelegramMessage(message);
+}
+
+export { sendTelegramMessage, buildAndSendNotificationMessage };

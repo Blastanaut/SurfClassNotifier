@@ -1,10 +1,15 @@
-const { chromium } = require('playwright');
-const config = require('./config');
-const SURF_FORECAST_LINK = process.env.SURF_FORECAST_LINK;  // Link to surf forecasts
-const SURF_REGISTERING_WEBSITE_LINK = process.env.SURF_REGISTERING_WEBSITE_LINK;  // Link to surf class website
+import { chromium } from 'playwright';
+import config from './config.js';
+
+const {
+    SURF_FORECAST_LINK,
+    SURF_REGISTERING_WEBSITE_LINK,
+    EMAIL,
+    PASSWORD
+} = config;
 
 // Function to scrape wave energy values and their corresponding dates from a surf forecast page.
-async function scrapeWaveEnergyAndDates() {
+export async function scrapeWaveEnergyAndDates() {
     // Initialize the browser and page
     const browser = await chromium.launch();
     const context = await browser.newContext();
@@ -65,7 +70,7 @@ async function scrapeWaveEnergyAndDates() {
 }
 
 // Function to log into the surf registration site by entering email and password and clicking the login button.
-async function loginToSite(page) {
+export async function loginToSite(page) {
     console.log("🔄Navigating to the login page…");
     await page.goto(SURF_REGISTERING_WEBSITE_LINK, { waitUntil: 'domcontentloaded' });
 
@@ -90,8 +95,8 @@ async function loginToSite(page) {
 
     /* ----------  fill & submit  ---------- */
     console.log("✏️Typing credentials…");
-    await emailInput.fill(config.EMAIL);
-    await passwordInput.fill(config.PASSWORD);
+    await emailInput.fill(EMAIL);
+    await passwordInput.fill(PASSWORD);
 
     const submitBtn = page.locator('#but_dados, button[type="submit"]');
     await Promise.all([
@@ -103,7 +108,7 @@ async function loginToSite(page) {
 }
 
 // Function to launch a new instance of the Puppeteer browser with specified settings for optimized performance and compatibility.
-async function launchBrowser() {
+export async function launchBrowser() {
     const browser = await chromium.launch({
         headless: true,
         args: [
@@ -119,10 +124,8 @@ async function launchBrowser() {
     return browser;
 }
 
-module.exports = { launchBrowser };
-
 // Function to click on a specific date element on the page based on a provided formatted date.
-async function clickOnDate(page, formattedDate) {
+export async function clickOnDate(page, formattedDate) {
     // Selector for the date element, using the data-date attribute with the specified formatted date
     const dateSelector = `[data-date="${formattedDate}"]`;
 
@@ -142,10 +145,3 @@ async function clickOnDate(page, formattedDate) {
 
     return true; // Return true if click was successful
 }
-
-module.exports = {
-    scrapeWaveEnergyAndDates,
-    loginToSite,
-    launchBrowser,
-    clickOnDate
-};

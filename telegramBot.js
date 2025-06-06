@@ -1,4 +1,4 @@
-import TelegramBot from 'node-telegram-bot-api';
+import { Telegraf } from 'telegraf';
 import config from './config.js';
 
 const { TELEGRAM_TOKEN, CHAT_ID, PUBLIC_CHANNEL_TOKEN, ENABLE_TELEGRAM_PRIVATE, ENABLE_TELEGRAM_PUBLIC, SURF_REGISTERING_WEBSITE_MESSAGE_HEADER } = config;
@@ -7,12 +7,7 @@ const { TELEGRAM_TOKEN, CHAT_ID, PUBLIC_CHANNEL_TOKEN, ENABLE_TELEGRAM_PRIVATE, 
 const SEND_TO_PRIVATE = ENABLE_TELEGRAM_PRIVATE; // Set to false to disable private chat messages
 const SEND_TO_PUBLIC = ENABLE_TELEGRAM_PUBLIC;  // You can add a separate flag if needed
 
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
-
-if (bot.isPolling()) {
-    console.log('⚠️ Terminating existing polling process.');
-    await bot.stopPolling();
-}
+const bot = new Telegraf(TELEGRAM_TOKEN);
 
 async function sendTelegramMessage(message) {
     const recipients = [];
@@ -24,14 +19,12 @@ async function sendTelegramMessage(message) {
         return;
     }
 
-    const options = {
-        parse_mode: 'Markdown',
-        disable_web_page_preview: true
-    };
-
     try {
         await Promise.all(
-            recipients.map(id => bot.sendMessage(id, message, options))
+            recipients.map(id => bot.telegram.sendMessage(id, message, {
+                parse_mode: 'Markdown',
+                disable_web_page_preview: true
+            }))
         );
         console.log('✅ Message sent to enabled recipients');
     } catch (error) {

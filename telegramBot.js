@@ -1,11 +1,11 @@
 const TelegramBot = require('node-telegram-bot-api');
-const config = require('./config');
+const {
+    TELEGRAM_TOKEN,
+    CHAT_ID,
+    PUBLIC_CHANNEL_TOKEN
+} = require('./config');
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;        // Token for Telegram Bot
-const CHAT_ID = process.env.CHAT_ID;                      // Telegram chat ID for notifications
-const PUBLIC_CHANNEL_TOKEN = process.env.PUBLIC_CHANNEL_TOKEN;  // Public Telegram channel token if needed
-
-const bot = new TelegramBot(config.TELEGRAM_TOKEN, { polling: true });
+const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 // Function to send a Telegram message to both a private chat and a public channel
 async function sendTelegramMessage(message) {

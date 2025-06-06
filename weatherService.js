@@ -1,7 +1,5 @@
 const fetch = require('isomorphic-fetch');
-const config = require('./config');
-
-const WEATHERAPI_API_KEY = process.env.WEATHERAPI_API_KEY; // API key for OpenWeather
+const { WEATHERAPI_API_KEY } = require('./config');
 
 // Function to retrieve weather data for a specified city and date
 async function getWeather(city, date) {

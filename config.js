@@ -1,6 +1,7 @@
-require('dotenv').config(); // Load environment variables from .env file
+import dotenv from 'dotenv';
+dotenv.config();
 
-module.exports = {
+const config = {
     TELEGRAM_TOKEN: process.env.TELEGRAM_TOKEN,
     CHAT_ID: process.env.CHAT_ID,
     EMAIL: process.env.WEB_EMAIL,
@@ -14,5 +15,12 @@ module.exports = {
     DROPBOX_REFRESH_TOKEN: process.env.DROPBOX_REFRESH_TOKEN,
     DROPBOX_CLIENT_ID: process.env.DROPBOX_CLIENT_ID,
     DROPBOX_CLIENT_SECRET: process.env.DROPBOX_CLIENT_SECRET,
-    SURF_REGISTERING_WEBSITE_MESSAGE_HEADER: process.env.SURF_REGISTERING_WEBSITE_MESSAGE_HEADER
+    SURF_REGISTERING_WEBSITE_MESSAGE_HEADER: process.env.SURF_REGISTERING_WEBSITE_MESSAGE_HEADER,
+    // Debug/feature toggles
+    ENABLE_TELEGRAM_PRIVATE: process.env.ENABLE_TELEGRAM_PRIVATE === 'true',
+    ENABLE_TELEGRAM_PUBLIC: process.env.ENABLE_TELEGRAM_PUBLIC === 'true',
+    ENABLE_DROPBOX_DOWNLOAD: process.env.ENABLE_DROPBOX_DOWNLOAD === 'true',
+    ENABLE_DROPBOX_UPLOAD: process.env.ENABLE_DROPBOX_UPLOAD === 'true'
 };
+
+export default config;

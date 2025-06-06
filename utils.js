@@ -1,4 +1,5 @@
-const moment = require('moment');
+import moment from 'moment';
+import { performanceClassKeywords } from './classFilters.js';
 
 /**
  * Generates a Google Calendar event link.
@@ -9,7 +10,7 @@ const moment = require('moment');
  * @param {string} coach - Coach name.
  * @returns {string|null} - Google Calendar link or null if invalid.
  */
-function createGoogleCalendarLink(className, date, startTime, endTime, coach) {
+export function createGoogleCalendarLink(className, date, startTime, endTime, coach) {
     try {
         const startDate = moment(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm', true);
         const endDate = moment(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm', true);
@@ -20,14 +21,13 @@ function createGoogleCalendarLink(className, date, startTime, endTime, coach) {
 
         return `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(className)}&dates=${startDate.format('YYYYMMDDTHHmmssZ')}/${endDate.format('YYYYMMDDTHHmmssZ')}&details=${encodeURIComponent(`Coach: ${coach}`)}`;
     } catch (error) {
-        console.error('Error creating Google Calendar link:', error.message);
+        console.error('Error generating Google Calendar link:', error);
         return null;
     }
 }
 
-
 // Function to split a class time range into start and end times
-function splitClassTime(classTime) {
+export function splitClassTime(classTime) {
     if (!classTime.includes(' - ')) {
         return { start: null, end: null }; // Return nulls if the format is invalid
     }
@@ -37,7 +37,7 @@ function splitClassTime(classTime) {
 }
 
 // Function to convert a string to title case, capitalizing the first letter of each word
-function toTitleCase(str) {
+export function toTitleCase(str) {
     return str
         .toLowerCase()                // Convert the entire string to lowercase
         .split(' ')                   // Split the string into an array of words
@@ -48,16 +48,46 @@ function toTitleCase(str) {
 }
 
 // Function to determine the period (AM or PM) from a class time string.
-function getPeriodFromClassTime(classTime) {
+export function getPeriodFromClassTime(classTime) {
     // Split the time range and get the starting hour as a number
     const [startHour] = classTime.split(' - ')[0].split(':').map(Number);
 
     // Return "AM" if the hour is less than 12, otherwise "PM"
     return startHour < 12 ? 'AM' : 'PM';
 }
-module.exports = {
-    createGoogleCalendarLink,
-    toTitleCase,
-    getPeriodFromClassTime,
-    splitClassTime
-};
+
+// Helper function to create a calendar entry
+export function createCalendarEntry(classData, formattedDate, waveData, dayFromNow) {
+    const {
+        className,
+        classTime,
+        classStartTime,
+        classEndTime,
+        coachName
+    } = classData;
+
+    const period = getPeriodFromClassTime(classTime);
+    const formattedClassName = toTitleCase(className);
+    const formattedCoachName = toTitleCase(coachName);
+    console.log(`[DEBUG] Creating calendar link for: ${formattedDate}, ${classStartTime} - ${classEndTime}`);
+
+    const calendarLink = createGoogleCalendarLink(
+        formattedClassName,
+        formattedDate,
+        classStartTime,
+        classEndTime,
+        formattedCoachName
+    );
+
+    const waveEnergy = waveData.find(wave =>
+        wave.date === dayFromNow.format('ddd MMM DD YYYY') &&
+        wave.time === period
+    );
+    const energyInfo = waveEnergy ? parseInt(waveEnergy.energy.match(/\d+/)[0], 10) : null;
+
+    return {
+        entry: `\n[⚡${energyInfo}🏄🗓️️${formattedClassName} (${formattedCoachName})](${calendarLink})`,
+        classTime,
+        isPerformanceClass: performanceClassKeywords.some(keyword => className.includes(keyword))
+    };
+}

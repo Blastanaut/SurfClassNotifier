@@ -1,8 +1,10 @@
-const fetch = require('isomorphic-fetch');
-const { WEATHERAPI_API_KEY } = require('./config');
+import fetch from 'isomorphic-fetch';
+import config from './config.js';
+
+const { WEATHERAPI_API_KEY } = config;
 
 // Function to retrieve weather data for a specified city and date
-async function getWeather(city, date) {
+export async function getWeather(city, date) {
     // Fetch forecast data from OpenWeather
     const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${WEATHERAPI_API_KEY}&units=metric`;
 
@@ -64,11 +66,7 @@ async function getWeather(city, date) {
 
     } catch (error) {
         // Log any errors encountered during the fetch or processing
-        console.error('Error fetching weather data:', error.message);
+        console.error('❌ Error fetching weather data:', error);
         return null; // Return null if an error occurs
     }
 }
-
-module.exports = {
-    getWeather
-};

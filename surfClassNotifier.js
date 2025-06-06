@@ -81,6 +81,7 @@ async function checkForNewClasses() {
                 const classElements = document.querySelectorAll('.row.no-gap .col-50[align="left"]');
                 const timeElements = document.querySelectorAll('.row.no-gap .col[align="left"]:not(.col-auto)');
                 const coachElements = document.querySelectorAll('.row.no-gap .col-50[align="right"]');
+                const rows = document.querySelectorAll('.row.no-gap');
                 const classData = [];
 
                 for (let i = 0; i < classElements.length; i++) {
@@ -88,7 +89,17 @@ async function checkForNewClasses() {
                     const classTime = timeElements[i]?.innerText.trim() || 'No time available';  // Default if time missing
                     const coachName = coachElements[i]?.innerText.trim() || 'No coach available';  // Default if coach missing
 
-                    classData.push({ className, classTime, coachName });
+                    let users = [];
+                    const row = rows[i];
+                    if (row) {
+                        let chips = row.querySelectorAll('.chip-label, .chip span, span.user-name');
+                        if (!chips.length && row.nextElementSibling) {
+                            chips = row.nextElementSibling.querySelectorAll('.chip-label, .chip span, span.user-name');
+                        }
+                        users = Array.from(chips).map(el => el.textContent.trim()).filter(Boolean);
+                    }
+
+                    classData.push({ className, classTime, coachName, signedUpUsers: users.join(', ') });
                 }
                 return classData;
             });
@@ -113,7 +124,7 @@ async function checkForNewClasses() {
                     );
                     const energyInfo = waveEnergy ? parseInt(waveEnergy.energy.match(/\d+/)[0], 10) : null;
 
-                    const { className, classTime, coachName } = classData;
+                    const { className, classTime, coachName, signedUpUsers } = classData;
                     const { start, end } = splitClassTime(classTime);
 
                     const isRecurring = recurringClasses.some(recurring =>
@@ -129,6 +140,7 @@ async function checkForNewClasses() {
                         start,
                         end,
                         coachName,
+                        signedUpUsers,
                         energyInfo,
                         notifiedStatus
                     );
@@ -161,7 +173,8 @@ async function checkForNewClasses() {
                         classTime,
                         classStartTime,
                         classEndTime,
-                        coachName
+                        coachName,
+                        signedUpUsers
                     } = classData;
 
                     const period = getPeriodFromClassTime(classTime);
@@ -183,7 +196,8 @@ async function checkForNewClasses() {
                     );
                     const energyInfo = waveEnergy ? parseInt(waveEnergy.energy.match(/\d+/)[0], 10) : null;
 
-                    const entry = `\n[⚡${energyInfo}🏄🗓️️${formattedClassName} (${formattedCoachName})](${calendarLink})`;
+                    const usersInfo = signedUpUsers ? ` - ${signedUpUsers}` : '';
+                    const entry = `\n[⚡${energyInfo}🏄🗓️️${formattedClassName} (${formattedCoachName})](${calendarLink})${usersInfo}`;
 
                     if (
                         className.includes('PERFORMANCE LARANJA') ||

@@ -85,13 +85,45 @@ async function checkForNewClasses() {
 
                 for (let i = 0; i < classElements.length; i++) {
                     const className = classElements[i].innerText.trim().toUpperCase();
-                    const classTime = timeElements[i]?.innerText.trim() || 'No time available';  // Default if time missing
-                    const coachName = coachElements[i]?.innerText.trim() || 'No coach available';  // Default if coach missing
+                    const classTime = timeElements[i]?.innerText.trim() || 'No time available';
+                    const coachName = coachElements[i]?.innerText.trim() || 'No coach available';
 
-                    classData.push({ className, classTime, coachName });
+                    classData.push({ className, classTime, coachName, rowIndex: i });
                 }
                 return classData;
             });
+
+            // Open each class details popup to gather the list of signed up users
+            const rowHandles = await page.$$('.row.no-gap');
+            for (const item of classCounts) {
+                item.signedUpUsers = '';
+                const row = rowHandles[item.rowIndex];
+                if (!row) continue;
+                try {
+                    const detailBtn = await row.$('a.link.icon-only, a[onclick*="detalhes_aula"]');
+                    if (detailBtn) {
+                        await detailBtn.click();
+                        await page.waitForSelector('.popup.detalhes_aula.modal-in', { timeout: 3000 });
+                        const users = await page.evaluate(() =>
+                            Array.from(document.querySelectorAll('.popup.detalhes_aula.modal-in .list .item-title'))
+                                .map(el => el.textContent.trim())
+                                .filter(Boolean)
+                        );
+                        item.signedUpUsers = users.join(', ');
+                        const back = await page.$('.popup.detalhes_aula.modal-in .but_back a');
+                        if (back) {
+                            await back.click();
+                            await page.waitForSelector('.popup.detalhes_aula.modal-in', { state: 'hidden', timeout: 2000 }).catch(() => {});
+                        }
+                    }
+                } catch (err) {
+                    console.error('❌ Error retrieving participants:', err.message);
+                    try {
+                        const back = await page.$('.popup.detalhes_aula.modal-in .but_back a');
+                        if (back) await back.click();
+                    } catch (_) {}
+                }
+            }
 
             // Step 5: Compare extracted classes with previously stored classes for the same date
             const previousClasses = await new Promise(resolve => getClassData(formattedDate, resolve));
@@ -113,7 +145,7 @@ async function checkForNewClasses() {
                     );
                     const energyInfo = waveEnergy ? parseInt(waveEnergy.energy.match(/\d+/)[0], 10) : null;
 
-                    const { className, classTime, coachName } = classData;
+                    const { className, classTime, coachName, signedUpUsers } = classData;
                     const { start, end } = splitClassTime(classTime);
 
                     const isRecurring = recurringClasses.some(recurring =>
@@ -129,6 +161,7 @@ async function checkForNewClasses() {
                         start,
                         end,
                         coachName,
+                        signedUpUsers,
                         energyInfo,
                         notifiedStatus
                     );
@@ -161,7 +194,8 @@ async function checkForNewClasses() {
                         classTime,
                         classStartTime,
                         classEndTime,
-                        coachName
+                        coachName,
+                        signedUpUsers
                     } = classData;
 
                     const period = getPeriodFromClassTime(classTime);
@@ -183,7 +217,8 @@ async function checkForNewClasses() {
                     );
                     const energyInfo = waveEnergy ? parseInt(waveEnergy.energy.match(/\d+/)[0], 10) : null;
 
-                    const entry = `\n[⚡${energyInfo}🏄🗓️️${formattedClassName} (${formattedCoachName})](${calendarLink})`;
+                    const usersInfo = signedUpUsers ? ` - ${signedUpUsers}` : '';
+                    const entry = `\n[⚡${energyInfo}🏄🗓️️${formattedClassName} (${formattedCoachName})](${calendarLink})${usersInfo}`;
 
                     if (
                         className.includes('PERFORMANCE LARANJA') ||

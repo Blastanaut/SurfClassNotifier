@@ -11,6 +11,7 @@ function initializeDatabase() {
                                                    classStartTime TEXT,
                                                    classEndTime TEXT,
                                                    coachName TEXT,
+                                                   signedUpUsers TEXT,
                                                    waveEnergy TEXT,
                                                    notified INTEGER DEFAULT 0
             )`, (err) => {
@@ -18,6 +19,24 @@ function initializeDatabase() {
             console.error("❌ Error initializing database:", err.message);
         } else {
             console.log("✅ Database initialized with `notified` column.");
+        }
+    });
+
+    // Ensure the signedUpUsers column exists for backwards compatibility
+    db.all('PRAGMA table_info(classes);', (err, rows) => {
+        if (err) {
+            console.error('❌ Error checking table info:', err.message);
+            return;
+        }
+        const hasColumn = rows.some(r => r.name === 'signedUpUsers');
+        if (!hasColumn) {
+            db.run('ALTER TABLE classes ADD COLUMN signedUpUsers TEXT;', (alterErr) => {
+                if (alterErr) {
+                    console.error('❌ Error adding signedUpUsers column:', alterErr.message);
+                } else {
+                    console.log('✅ signedUpUsers column added to database.');
+                }
+            });
         }
     });
 }
@@ -38,10 +57,10 @@ function getClassData(date, callback) {
 }
 
 // Function to save a new class record into the database
-function saveClassData(date, className, classTime, classStartTime, classEndTime, coachName, waveEnergy, notified = 0) {
+function saveClassData(date, className, classTime, classStartTime, classEndTime, coachName, signedUpUsers, waveEnergy, notified = 0) {
     db.run(
-        'INSERT INTO classes (date, className, classTime, classStartTime, classEndTime, coachName, waveEnergy, notified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [date, className, classTime, classStartTime, classEndTime, coachName, waveEnergy, notified],
+        'INSERT INTO classes (date, className, classTime, classStartTime, classEndTime, coachName, signedUpUsers, waveEnergy, notified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [date, className, classTime, classStartTime, classEndTime, coachName, signedUpUsers, waveEnergy, notified],
         function (err) {
             if (err) {
                 console.error('❌ Error saving class data:', err.message);

@@ -100,18 +100,21 @@ async function checkForNewClasses() {
                 const row = rowHandles[item.rowIndex];
                 if (!row) continue;
                 try {
-                    await row.click();
-                    await page.waitForSelector('.popup.detalhes_aula.modal-in', { timeout: 3000 });
-                    const users = await page.evaluate(() => {
-                        return Array.from(document.querySelectorAll('.popup.detalhes_aula.modal-in .list .item-title'))
-                            .map(el => el.textContent.trim())
-                            .filter(Boolean);
-                    });
-                    item.signedUpUsers = users.join(', ');
-                    const back = await page.$('.popup.detalhes_aula.modal-in .but_back a');
-                    if (back) {
-                        await back.click();
-                        await page.waitForSelector('.popup.detalhes_aula.modal-in', { state: 'hidden', timeout: 2000 }).catch(() => {});
+                    const detailBtn = await row.$('a.link.icon-only, a[onclick*="detalhes_aula"]');
+                    if (detailBtn) {
+                        await detailBtn.click();
+                        await page.waitForSelector('.popup.detalhes_aula.modal-in', { timeout: 3000 });
+                        const users = await page.evaluate(() =>
+                            Array.from(document.querySelectorAll('.popup.detalhes_aula.modal-in .list .item-title'))
+                                .map(el => el.textContent.trim())
+                                .filter(Boolean)
+                        );
+                        item.signedUpUsers = users.join(', ');
+                        const back = await page.$('.popup.detalhes_aula.modal-in .but_back a');
+                        if (back) {
+                            await back.click();
+                            await page.waitForSelector('.popup.detalhes_aula.modal-in', { state: 'hidden', timeout: 2000 }).catch(() => {});
+                        }
                     }
                 } catch (err) {
                     console.error('❌ Error retrieving participants:', err.message);

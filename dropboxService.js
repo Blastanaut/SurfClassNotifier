@@ -1,131 +1,155 @@
 import { Dropbox } from 'dropbox';
 import fetch from 'isomorphic-fetch';
 import fs from 'fs';
-import path from 'path';
+import path, { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import config from './config.js';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Module-level setup: reconstruct __dirname in ES Modules
+// ─────────────────────────────────────────────────────────────────────────────
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = dirname(__filename);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Configuration: load Dropbox credentials from external config
+// ─────────────────────────────────────────────────────────────────────────────
 const {
-    DROPBOX_ACCESS_TOKEN,
-    DROPBOX_REFRESH_TOKEN,
-    DROPBOX_CLIENT_ID,
-    DROPBOX_CLIENT_SECRET
+  DROPBOX_ACCESS_TOKEN,
+  DROPBOX_REFRESH_TOKEN,
+  DROPBOX_CLIENT_ID,
+  DROPBOX_CLIENT_SECRET
 } = config;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Initialize a Dropbox client instance with the initial access token
+// ─────────────────────────────────────────────────────────────────────────────
 let dbx = new Dropbox({ accessToken: DROPBOX_ACCESS_TOKEN, fetch });
 
-// Function to refresh the Dropbox access token using the stored refresh token
+// ─────────────────────────────────────────────────────────────────────────────
+// refreshAccessToken: obtains a new OAuth access token using the refresh token
+// - Logs each step for debugging
+// - Updates the `dbx` instance
+// Returns: the new access token string
+// Throws: an Error if the refresh HTTP request fails or returns an error
+// ─────────────────────────────────────────────────────────────────────────────
 export async function refreshAccessToken() {
-    try {
-        // Send a POST request to Dropbox API for token refresh
-        const response = await fetch('https://api.dropbox.com/oauth2/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                grant_type: 'refresh_token',
-                refresh_token: DROPBOX_REFRESH_TOKEN,
-                client_id: DROPBOX_CLIENT_ID,
-                client_secret: DROPBOX_CLIENT_SECRET
-            })
-        });
+  console.debug('🔄 [refreshAccessToken] Starting token refresh...');
+  const params = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: DROPBOX_REFRESH_TOKEN,
+    client_id: DROPBOX_CLIENT_ID,
+    client_secret: DROPBOX_CLIENT_SECRET
+  });
 
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(`Failed to refresh token: ${data.error}`);
-        }
+  try {
+    const res = await fetch('https://api.dropbox.com/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params
+    });
 
-        dbx = new Dropbox({ accessToken: data.access_token, fetch });
-        return data.access_token;
-    } catch (error) {
-        console.error('❌Error in refreshAccessToken:', error);
-        throw error;
+    const data = await res.json();
+    if (!res.ok) {
+      console.error(`❌ [refreshAccessToken] HTTP ${res.status} -`, data.error_description || data.error);
+      throw new Error(`Failed to refresh token: ${data.error_description || data.error}`);
     }
+
+    // Swap out the Dropbox client with the new token
+    dbx = new Dropbox({ accessToken: data.access_token, fetch });
+    console.debug('✅ [refreshAccessToken] Token refreshed successfully');
+    return data.access_token;
+  } catch (err) {
+    console.error('❌ [refreshAccessToken] Unexpected error:', err);
+    throw err;  // propagate to caller
+  }
 }
 
-// Function to download a file from Dropbox to a specified local path
-export async function downloadFromDropbox(dropboxFilePath, localFilePath) {
+// ─────────────────────────────────────────────────────────────────────────────
+// downloadFromDropbox: fetches a file from a Dropbox path to local disk
+// - Handles token expiration by refreshing and retrying once
+// - Writes binary file data synchronously
+// Parameters:
+//   dropboxFilePath   - path in Dropbox, e.g. '/folder/file.txt'
+//   localRelativePath - path relative to project root, e.g. 'downloads/file.txt'
+// Throws: an Error if download fails after retry
+// ─────────────────────────────────────────────────────────────────────────────
+export async function downloadFromDropbox(dropboxFilePath, localRelativePath) {
+  const outPath = join(__dirname, localRelativePath);
+  console.debug(`⬇️ [downloadFromDropbox] Starting download from '${dropboxFilePath}' to '${outPath}'`);
+
+  try {
+    let res;
     try {
-        let response;
-
-        // Attempt initial download from Dropbox
-        try {
-            response = await dbx.filesDownload({ path: dropboxFilePath });
-        } catch (error) {
-            // Check for 401 (unauthorized) or 400 (bad request) errors, indicating token issues
-            if (error.status === 401 || error.status === 400) {
-                console.log('🌐Refreshing Access Token...');
-
-                // Refresh the access token
-                const newAccessToken = await refreshAccessToken();
-                dbx = new Dropbox({ accessToken: newAccessToken, fetch });
-
-                // Retry the download after refreshing the token
-                response = await dbx.filesDownload({ path: dropboxFilePath });
-            } else {
-                throw error;
-            }
-        }
-
-        // Write the downloaded file to the specified local path
-        fs.writeFileSync(localFilePath, response.result.fileBinary, 'binary');
-        console.log(`✔️File downloaded successfully to ${localFilePath}`);
-    } catch (error) {
-        console.error('❌Error downloading file from Dropbox:', error);
-        throw error;
+      // First attempt with current token
+      res = await dbx.filesDownload({ path: dropboxFilePath });
+    } catch (err) {
+      // If unauthorized or bad request, refresh token and retry
+      if (err.status === 401 || err.status === 400) {
+        console.warn('⚠️ [downloadFromDropbox] Token expired or invalid, refreshing token and retrying...');
+        const newToken = await refreshAccessToken();
+        dbx = new Dropbox({ accessToken: newToken, fetch });
+        res = await dbx.filesDownload({ path: dropboxFilePath });
+      } else {
+        console.error('❌ [downloadFromDropbox] Download failed:', err);
+        throw err;
+      }
     }
+
+    // Write file to disk
+    fs.writeFileSync(outPath, res.result.fileBinary, 'binary');
+    console.info(`✔️ [downloadFromDropbox] File successfully downloaded to '${outPath}'`);
+  } catch (err) {
+    console.error('❌ [downloadFromDropbox] Error during download operation:', err);
+    throw err;
+  }
 }
 
-// Function to upload a local file to Dropbox at the specified Dropbox path
-export const uploadToDropbox = async (dropboxPath, localFile) => {
-    try {
-        // Build the full local file path
-        const fullPath = path.join(__dirname, localFile);
+// ─────────────────────────────────────────────────────────────────────────────
+// uploadToDropbox: uploads a local file to Dropbox, overwriting any existing file
+// - Verifies local file exists before reading
+// - Handles token expiration by refreshing and retrying once
+// Parameters:
+//   dropboxPath       - destination path in Dropbox, e.g. '/folder/file.txt'
+//   localRelativePath - path relative to project root, e.g. 'uploads/file.txt'
+// Returns: the Dropbox API response object on success
+// Throws: an Error if upload fails after retry
+// ─────────────────────────────────────────────────────────────────────────────
+export async function uploadToDropbox(dropboxPath, localRelativePath) {
+  const fullPath = join(__dirname, localRelativePath);
+  console.debug(`⬆️ [uploadToDropbox] Preparing to upload local file '${fullPath}' to Dropbox path '${dropboxPath}'`);
 
-        // Check if the file exists locally
-        if (!fs.existsSync(fullPath)) {
-            console.error('❌ File does not exist:', fullPath);
-            return;
-        }
+  if (!fs.existsSync(fullPath)) {
+    const errMsg = `Local file not found: '${fullPath}'`;
+    console.error(`❌ [uploadToDropbox] ${errMsg}`);
+    throw new Error(errMsg);
+  }
 
-        // Read file content
-        const fileContent = fs.readFileSync(fullPath);
+  const contents = fs.readFileSync(fullPath);
 
-        // Attempt initial file upload to Dropbox
-        let response;
-        try {
-            response = await dbx.filesUpload({
-                path: dropboxPath,      // Destination path on Dropbox
-                contents: fileContent, // File content
-                mode: 'overwrite'    // Overwrite if file already exists
-            });
-        } catch (error) {
-            // Handle 401 (unauthorized) errors by refreshing access token
-            if (error.status === 401) {
-                console.log('🌐Refreshing Access Token...');
-                const newAccessToken = await refreshAccessToken();
-
-                // Update Dropbox instance with the refreshed access token
-                dbx.setAccessToken(newAccessToken);
-
-                // Retry the file upload with the new token
-                response = await dbx.filesUpload({
-                    path: dropboxPath,
-                    contents: fileContent,
-                    mode: 'overwrite'
-                });
-            } else {
-                throw error; // Re-throw if error is not related to authorization
-            }
-        }
-
-        // Check if the upload was successful
-        if (response.status === 200) {
-            console.log('✅Successfully uploaded file to Dropbox. Code: 200');
-        } else {
-            throw new Error('❌Upload failed with status code: ' + response.status);
-        }
-
-    } catch (error) {
-        // Log any errors encountered during the upload process
-        console.error('❌Error uploading file to Dropbox:', error.message);
+  try {
+    // Attempt upload with current token
+    const response = await dbx.filesUpload({
+      path: dropboxPath,
+      contents,
+      mode: { '.tag': 'overwrite' }
+    });
+    console.info(`✅ [uploadToDropbox] File uploaded successfully to '${dropboxPath}'`);
+    return response;
+  } catch (err) {
+    if (err.status === 401) {
+      console.warn('⚠️ [uploadToDropbox] Token expired or invalid, refreshing token and retrying upload...');
+      const newToken = await refreshAccessToken();
+      dbx = new Dropbox({ accessToken: newToken, fetch });
+      const retryResp = await dbx.filesUpload({
+        path: dropboxPath,
+        contents,
+        mode: { '.tag': 'overwrite' }
+      });
+      console.info(`🔁 [uploadToDropbox] Retry upload succeeded for '${dropboxPath}'`);
+      return retryResp;
     }
-};
+    console.error('❌ [uploadToDropbox] Upload failed:', err);
+    throw err;
+  }
+}
